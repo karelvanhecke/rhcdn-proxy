@@ -1,0 +1,69 @@
+#!/bin/bash
+register() {
+    echo "Register rhcdn-proxy"
+    subscription-manager register --org $org --activationkey $activationkey --no-progress-messages
+}
+
+link_certs() {
+    echo "Link certificates"
+    local entitlement_cert=$(find $entitlement_dir -type f -exec grep -l CERTIFICATE {} \;)
+    local entitlement_key=$(find $entitlement_dir -type f -exec grep -l PRIVATE\ KEY {} \;)
+
+    ln -f -s $entitlement_cert $current_cert
+    ln -f -s $entitlement_key $current_key
+}
+
+inotifywait_daemon() {
+    inotifywait -q -r -e modify -e create --exclude current*.pem $entitlement_dir &
+    wait $!
+}
+
+cert_monitor(){
+    echo "Monitor certificates"
+    while inotifywait_daemon; do
+        echo "Certificates updated"
+        link_certs
+        echo "Reload nginx"
+        kill -s SIGHUP $(cat /var/run/nginx.pid)
+    done
+}
+
+unregister() {
+    echo "Unregister rhcdn-proxy"
+    subscription-manager unregister --no-progress-messages
+}
+
+terminate() {
+    echo "Stop certificate monitor"
+    kill -s SIGTERM $!
+    echo "Stop nginx"
+    kill -s SIGTERM $(cat /var/run/nginx.pid)
+    echo "Stop rhsmcertd"
+    kill -s SIGTERM $(cat /var/lock/subsys/rhsmcertd)
+    unregister
+    echo "Stop rhcdn-proxy"
+    exit 0
+}
+
+main() {
+    echo "Start rhcdn-proxy"
+
+    set -eo pipefail
+    trap terminate SIGTERM
+
+    entitlement_dir=/etc/pki/entitlement
+    current_cert=$entitlement_dir/current.pem
+    current_key=$entitlement_dir/current-key.pem
+
+    register
+    link_certs
+
+    echo "Start rhsmcertd"
+    /usr/bin/rhsmcertd
+    echo "Start nginx"
+    /usr/sbin/nginx
+    echo "Start certificate monitor"
+    cert_monitor
+}
+
+main
