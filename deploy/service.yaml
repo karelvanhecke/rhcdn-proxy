@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rhcdn-proxy
+  name: rhcdn-proxy
+  namespace: rhcdn-proxy
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: rhcdn-proxy
+  type: ClusterIP
