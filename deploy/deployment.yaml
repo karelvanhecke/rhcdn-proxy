@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rhcdn-proxy
+  name: rhcdn-proxy
+  namespace: rhcdn-proxy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rhcdn-proxy
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: rhcdn-proxy
+    spec:
+      containers:
+      - env:
+        - name: org
+          valueFrom:
+            secretKeyRef:
+              name: rhcdn-org
+              key: rhcdn-org
+        - name: activationkey
+          valueFrom:
+            secretKeyRef:
+              name: rhcdn-activationkey
+              key: rhcdn-activationkey
+        image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.1.0@sha256:3a6fcd18d7134c96f1f1aa53ef47f8732e051363ea2c957dd58646c99cef4477
+        name: rhcdn-proxy
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /cache
+          name: rhcdn-cache
+      volumes:
+      - name: rhcdn-cache
+        emptyDir:
+          sizeLimit: 20Gi
