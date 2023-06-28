@@ -3,3 +3,5 @@ extends: default
 rules:
   line-length:
     level: warning
+  indentation:
+    indent-sequences: whatever
