@@ -19,25 +19,25 @@ spec:
         app: rhcdn-proxy
     spec:
       containers:
-      - env:
+      - image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.1.0@sha256:3a6fcd18d7134c96f1f1aa53ef47f8732e051363ea2c957dd58646c99cef4477
+        name: rhcdn-proxy
+        env:
         - name: org
           valueFrom:
             secretKeyRef:
-              name: rhcdn-org
-              key: rhcdn-org
+              name: rhcdn-proxy
+              key: org
         - name: activationkey
           valueFrom:
             secretKeyRef:
-              name: rhcdn-activationkey
-              key: rhcdn-activationkey
-        image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.1.0@sha256:3a6fcd18d7134c96f1f1aa53ef47f8732e051363ea2c957dd58646c99cef4477
-        name: rhcdn-proxy
+              name: rhcdn-proxy
+              key: activationkey
         ports:
         - containerPort: 80
         volumeMounts:
         - mountPath: /cache
-          name: rhcdn-cache
+          name: rhcdn-proxy
       volumes:
-      - name: rhcdn-cache
+      - name: rhcdn-proxy
         emptyDir:
           sizeLimit: 20Gi
