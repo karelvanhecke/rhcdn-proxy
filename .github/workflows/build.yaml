@@ -1,0 +1,24 @@
+name: Build
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  container-build:
+    name: Build container
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build container
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: rhcdn-proxy
+          tags: ${{ github.ref_name }}
+          layers: true
+          oci: true
+          containerfiles: |
+            ./Containerfile
