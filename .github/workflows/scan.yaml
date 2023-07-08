@@ -1,0 +1,32 @@
+name: Scan
+on:
+  schedule:
+    - cron: '30 5 * * *'
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  image-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.1.1
+
+      - name: Verify image
+        id: cosign
+        run: cosign verify --certificate-identity-regexp ${{ github.server_url }}/${{ github.repository }}/.github/workflows/release.yaml@refs/tags/v* --certificate-oidc-issuer https://token.actions.githubusercontent.com ${{ env.IMAGE }} > $GITHUB_OUTPUT
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ fromJSON(steps.cosign.outputs.critical.image.docker-manifest-digest) }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
