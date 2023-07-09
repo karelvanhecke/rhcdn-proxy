@@ -1,0 +1,56 @@
+name: Release manifests
+on:
+  push:
+    tags:
+      - manifests-v*.*.*
+
+env:
+  IMAGE_NAME: ${{ github.repository_owner }}/manifests/rhcdn-proxy
+  FLUX_CHECKSUM: 283610583dd13fc41efc5f6e0823ba042a4381b942a85634c477a8adc29e840d
+  FLUX_DOWNLOAD: https://github.com/fluxcd/flux2/releases/download/v2.0.0/flux_2.0.0_linux_amd64.tar.gz
+  REGISTRY: ghcr.io
+
+jobs:
+  release-manifests:
+    name: Release manifests
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to ${{ env.REGISTRY }}
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install flux
+        run: |
+          mkdir -p ~/.local/bin
+          curl -L -o /tmp/flux.tar.gz ${{ env.FLUX_DOWNLOAD }}
+          echo "${{ env.FLUX_CHECKSUM }} /tmp/flux.tar.gz" | sha256sum -c
+          tar -xf /tmp/flux.tar.gz -C ~/.local/bin/
+          flux --version
+
+      - name: Push manifests to registries
+        id: flux-push-artifact
+        run: >
+          flux push artifact oci://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${GITHUB_REF_NAME##manifests-}
+          --path ./deploy
+          --revision ${{ github.ref_name }}@sha1:${{ github.sha }}
+          --source ${{ github.server_url }}/${{ github.repository }}
+          --output json |
+          jq -r .digest |
+          echo "digest=$(</dev/stdin)" >> $GITHUB_OUTPUT
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.1.1
+
+      - name: Sign manifests
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.flux-push-artifact.outputs.digest }}
