@@ -5,6 +5,7 @@ metadata:
   labels:
     app: rhcdn-proxy
   name: rhcdn-proxy
+  namespace: rhcdn-proxy
 spec:
   replicas: 2
   selector:
