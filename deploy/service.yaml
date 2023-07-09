@@ -5,7 +5,6 @@ metadata:
   labels:
     app: rhcdn-proxy
   name: rhcdn-proxy
-  namespace: rhcdn-proxy
 spec:
   ports:
   - name: http

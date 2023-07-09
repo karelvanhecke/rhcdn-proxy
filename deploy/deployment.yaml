@@ -5,7 +5,6 @@ metadata:
   labels:
     app: rhcdn-proxy
   name: rhcdn-proxy
-  namespace: rhcdn-proxy
 spec:
   replicas: 2
   selector:
@@ -19,7 +18,7 @@ spec:
         app: rhcdn-proxy
     spec:
       containers:
-      - image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.2.0
+      - image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.2.0@sha256:478223d26f2ba2de02b70921395d9e0754101e106e6185bcf86433452e9803fd
         name: rhcdn-proxy
         env:
         - name: org
