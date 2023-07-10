@@ -6,8 +6,6 @@ on:
 
 env:
   IMAGE_NAME: ${{ github.repository_owner }}/manifests/rhcdn-proxy
-  FLUX_CHECKSUM: 283610583dd13fc41efc5f6e0823ba042a4381b942a85634c477a8adc29e840d
-  FLUX_DOWNLOAD: https://github.com/fluxcd/flux2/releases/download/v2.0.0/flux_2.0.0_linux_amd64.tar.gz
   REGISTRY: ghcr.io
 
 jobs:
