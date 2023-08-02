@@ -30,7 +30,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=docker,oci-mediatypes=true
-          provenance: false
 
       - name: Scan image
         uses: aquasecurity/trivy-action@master

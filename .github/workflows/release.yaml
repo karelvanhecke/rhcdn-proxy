@@ -50,7 +50,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=registry,oci-mediatypes=true
-          provenance: false
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.1.1
