@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9@sha256:572155f3053e0267874da447743adec560458824c12d3f8acd429f781656cf33
+FROM registry.access.redhat.com/ubi9@sha256:351ed8b24d440c348486efd99587046e88bb966890a9207a5851d3a34a4dd346
 ENV SMDEV_CONTAINER_OFF=1
 RUN mkdir /var/lock/subsys
 RUN dnf makecache && \
