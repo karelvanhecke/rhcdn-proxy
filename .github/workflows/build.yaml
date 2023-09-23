@@ -2,38 +2,55 @@ name: Build
 on:
   pull_request:
     branches:
-      - main
+    - main
 
 env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  check-changes:
+    name: Check changes
+    runs-on: ubuntu-latest
+    outputs:
+      container: ${{ steps.changes.outputs.container }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          container:
+          - Dockerfile
+          - nginx.conf
+          - rhcdn-proxy
+
   build-image:
     name: Build image
     runs-on: ubuntu-latest
-
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.container == 'true' }}
     steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-      - name: Generate image metadata
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: type=ref,event=pr
+    - name: Generate image metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ env.IMAGE_NAME }}
+        tags: type=ref,event=pr
 
-      - name: Build image
-        id: build
-        uses: docker/build-push-action@v4
-        with:
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,oci-mediatypes=true
+    - name: Build image
+      id: build
+      uses: docker/build-push-action@v4
+      with:
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        outputs: type=docker,oci-mediatypes=true
 
-      - name: Scan image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.meta.outputs.tags }}
-          ignore-unfixed: true
-          exit-code: 1
+    - name: Scan image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.meta.outputs.tags }}
+        ignore-unfixed: true
+        exit-code: 1

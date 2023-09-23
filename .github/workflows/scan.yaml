@@ -1,7 +1,7 @@
 name: Scan
 on:
   schedule:
-    - cron: '30 3 * * *'
+  - cron: '30 3 * * *'
   workflow_dispatch:
   workflow_run:
     workflows: ["Release"]
@@ -16,27 +16,27 @@ jobs:
     permissions:
       security-events: write
     steps:
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.1.2
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.1.2
 
-      - name: Verify image
-        id: cosign
-        run: >
-          cosign verify
-          --certificate-identity-regexp ${{ github.server_url }}/${{ github.repository }}/.github/workflows/release.yaml@refs/tags/v*
-          --certificate-oidc-issuer https://token.actions.githubusercontent.com ${{ env.IMAGE }} |
-          jq -r '.[].critical.image."docker-manifest-digest"' |
-          echo "imageDigest=$(</dev/stdin)" >> $GITHUB_OUTPUT
+    - name: Verify image
+      id: cosign
+      run: >
+        cosign verify
+        --certificate-identity-regexp ${{ github.server_url }}/${{ github.repository }}/.github/workflows/release.yaml@refs/tags/v*
+        --certificate-oidc-issuer https://token.actions.githubusercontent.com ${{ env.IMAGE }} |
+        jq -r '.[].critical.image."docker-manifest-digest"' |
+        echo "imageDigest=$(</dev/stdin)" >> $GITHUB_OUTPUT
 
-      - name: Scan image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.IMAGE }}@${{ steps.cosign.outputs.imageDigest }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          ignore-unfixed: true
+    - name: Scan image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.IMAGE }}@${{ steps.cosign.outputs.imageDigest }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        ignore-unfixed: true
 
-      - name: Upload results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
+    - name: Upload results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'

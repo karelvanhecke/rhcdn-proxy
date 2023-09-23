@@ -4,4 +4,4 @@ rules:
   line-length:
     level: warning
   indentation:
-    indent-sequences: whatever
+    indent-sequences: consistent

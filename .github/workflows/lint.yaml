@@ -1,0 +1,51 @@
+name: Lint
+on:
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  check-changes:
+    name: Check changes
+    runs-on: ubuntu-latest
+    outputs:
+      yaml: ${{ steps.changes.outputs.yaml }}
+      shell: ${{ steps.changes.outputs.shell }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          yaml:
+          - '*.yaml'
+          - '.*.yaml'
+          - '**/*.yaml'
+          shell:
+          - '*.sh'
+          - '**/*.sh'
+          - rhcdn-proxy
+
+  shellcheck:
+    name: Lint shellscripts
+    needs: check-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-changes.outputs.shell == 'true' }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup shellcheck
+      run: sudo apt update && sudo apt install shellcheck -y
+    - name: Run shellcheck
+      run: find . -type f -exec grep -lE '^#!/bin/(ba)sh$' {} \; | xargs shellcheck -S error -x
+
+  yamllint:
+    name: Lint YAML files
+    needs: check-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-changes.outputs.yaml == 'true' }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup YAMLlint
+      run: sudo apt update && sudo apt install yamllint -y
+    - name: Run YAMLlint
+      run: yamllint --no-warnings .
