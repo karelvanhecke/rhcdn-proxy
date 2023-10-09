@@ -61,6 +61,14 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: rhcdn-proxy
+  patches:
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: rhcdn-proxy
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -69,8 +77,7 @@ metadata:
   namespace: rhcdn-proxy
   annotations:
     # https://www.nginx.com/blog/shared-caches-nginx-plus-cache-clusters-part-1/#Sharding-Your-Cache
-    nginx.org/lb-method: "hash $scheme$proxy_host$request_uri consistent" # nginxinc/kubernetes-ingress
-    # nginx.ingress.kubernetes.io/upstream-hash-by: "$scheme$proxy_host$request_uri" # kubernetes/ingress-nginx
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$scheme$proxy_host$request_uri" # kubernetes/ingress-nginx
 spec:
   ingressClassName: nginx
   rules:
