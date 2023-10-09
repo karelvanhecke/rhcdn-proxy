@@ -19,7 +19,7 @@ spec:
         app: rhcdn-proxy
     spec:
       containers:
-      - image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.2.3@sha256:ee8a060c7c26c87f29d6c902389a83b40de6cdab4a808635e9928a12f288398b
+      - image: ghcr.io/karelvanhecke/rhcdn-proxy:v0.2.4@sha256:b4937b6b0a3d08686597e3796cf2078d81dc31538a0f10d2c5e7204f8c2533d3
         name: rhcdn-proxy
         env:
         - name: org
